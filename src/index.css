@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: #FFFFFF;
+  --color-primary: #050505;
+  --color-secondary: #666666;
+
+  --letter-spacing-tightest: -0.02em;
+
+  --spacing-section: 160px;
+
+  --radius-project: 24px;
+}
+
+@layer base {
+  body {
+    @apply font-sans antialiased bg-white text-[#050505];
+  }
+}
+
+.max-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@layer utilities {
+  .section-spacing {
+    padding-top: var(--spacing-section);
+    padding-bottom: var(--spacing-section);
+  }
+}
+
+/* Marquee */
+.marquee-wrapper {
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}

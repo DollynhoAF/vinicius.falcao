@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HDrive — Fluxograma de Arquitetura</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --dark:      #1A2E3B;
+    --navy:      #253B4A;
+    --pink:      #E91E8C;
+    --pink-pill: rgba(233,30,140,0.14);
+    --teal-lt:   #E8F4F4;
+    --teal-md:   #B8D8D8;
+    --white:     #FFFFFF;
+    --gray-lt:   #F4F6F8;
+    --gray-md:   #6B7280;
+    --gray-bd:   #E5E7EB;
+    --col-gap:   40px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+    background: var(--gray-lt);
+    min-height: 100vh;
+    padding: 56px 40px 96px;
+    color: var(--dark);
+  }
+
+  /* ── Page header ─────────────────────────────── */
+  .page-header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+  .page-header .eyebrow {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 10px;
+  }
+  .page-header h1 {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--dark);
+    letter-spacing: -0.4px;
+    margin-bottom: 8px;
+  }
+  .page-header p {
+    font-size: 13px;
+    color: var(--gray-md);
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ── Diagram wrapper ──────────────────────────── */
+  .diagram {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* ── Two-column grid ──────────────────────────── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--col-gap);
+    align-items: start;
+  }
+
+  /* ── Column ───────────────────────────────────── */
+  .col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── Section label ────────────────────────────── */
+  .section-label {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 16px;
+    border-radius: 10px;
+  }
+  .section-label .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .section-label span {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+  }
+
+  .sl-negocio { background: var(--dark); }
+  .sl-negocio .dot { background: var(--pink); }
+  .sl-negocio span { color: var(--teal-lt); }
+
+  .sl-negocio2 { background: var(--navy); border-left: 4px solid var(--pink); }
+  .sl-negocio2 .dot { background: var(--pink); }
+  .sl-negocio2 span { color: var(--teal-lt); }
+
+  .sl-cliente { background: var(--teal-md); }
+  .sl-cliente .dot { background: var(--dark); }
+  .sl-cliente span { color: var(--dark); }
+
+  /* ── Arrows ───────────────────────────────────── */
+  .arrow {
+    width: 2px;
+    height: 24px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .arrow::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top-width: 6px;
+    border-top-style: solid;
+  }
+  .arrow.dk  { background: var(--dark); }
+  .arrow.dk::after  { border-top-color: var(--dark); }
+  .arrow.pk  { background: var(--pink); }
+  .arrow.pk::after  { border-top-color: var(--pink); }
+  .arrow.tl  { background: #7FAAAA; }
+  .arrow.tl::after  { border-top-color: #7FAAAA; }
+
+  /* ── Node base ────────────────────────────────── */
+  .node {
+    width: 100%;
+    border-radius: 12px;
+    padding: 15px 18px;
+  }
+
+  /* pill tag — reused in all node types */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 999px;
+    margin-bottom: 7px;
+  }
+  .tag .tag-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .ntitle {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 5px;
+  }
+  .ndesc {
+    font-size: 11px;
+    line-height: 1.55;
+  }
+
+  /* sub-list */
+  .subs {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .si {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    font-size: 10.5px;
+    line-height: 1.4;
+  }
+  .si .b {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+    background: var(--pink);
+  }
+
+  /* ── NODE: n-page (Negócio — página escura) ───── */
+  .n-page {
+    background: var(--navy);
+    border: 1.5px solid #2E4A5C;
+    border-left: 4px solid var(--pink);
+    padding-left: 16px;
+  }
+  .n-page .tag        { background: var(--pink-pill); color: var(--pink); }
+  .n-page .tag-dot    { background: var(--pink); }
+  .n-page .ntitle     { color: var(--white); }
+  .n-page .ndesc      { color: #8AABB8; }
+  .n-page .si         { color: #8AABB8; }
+
+  /* ── NODE: n-action (Negócio — ação/CTA) ─────── */
+  .n-action {
+    background: rgba(255,255,255,0.55);
+    border: 1.5px dashed #8AABB8;
+    border-left: 4px dashed var(--pink);
+    padding-left: 16px;
+    backdrop-filter: blur(2px);
+  }
+  .n-action .tag      { background: var(--pink-pill); color: var(--pink); }
+  .n-action .tag-dot  { background: var(--pink); }
+  .n-action .ntitle   { color: var(--navy); }
+  .n-action .ndesc    { color: var(--gray-md); }
+
+  /* ── NODE: n-system (automático — rosa sólido) ── */
+  .n-system {
+    background: var(--pink);
+    border: none;
+    box-shadow: 0 6px 28px rgba(233,30,140,0.32);
+  }
+  .n-system .tag      { background: rgba(255,255,255,0.2); color: var(--white); }
+  .n-system .tag-dot  { background: rgba(255,255,255,0.7); }
+  .n-system .ntitle   { color: var(--white); }
+  .n-system .ndesc    { color: rgba(255,255,255,0.85); }
+  .n-system .si       { color: rgba(255,255,255,0.85); }
+  .n-system .si .b    { background: rgba(255,255,255,0.65); }
+
+  /* ── NODE: c-page (Cliente — página clara) ───── */
+  .c-page {
+    background: var(--white);
+    border: 1.5px solid var(--teal-md);
+    box-shadow: 0 2px 10px rgba(26,46,59,0.07);
+  }
+  .c-page .tag        { background: rgba(233,30,140,0.09); color: var(--pink); }
+  .c-page .tag-dot    { background: var(--pink); }
+  .c-page .ntitle     { color: var(--dark); }
+  .c-page .ndesc      { color: var(--gray-md); }
+  .c-page .si         { color: var(--gray-md); }
+  .c-page .si .b      { background: var(--dark); }
+
+  /* ── NODE: c-split (Cliente — interação split) ── */
+  .c-split {
+    background: var(--white);
+    border: 1.5px solid var(--teal-md);
+    box-shadow: 0 2px 10px rgba(26,46,59,0.07);
+  }
+  .c-split .tag       { background: rgba(233,30,140,0.09); color: var(--pink); }
+  .c-split .tag-dot   { background: var(--pink); }
+  .c-split .ntitle    { color: var(--dark); }
+  .c-split .ndesc     { color: var(--gray-md); }
+
+  .split-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .split-child {
+    background: var(--teal-lt);
+    border: 1px solid var(--teal-md);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .sc-tag {
+    font-size: 8px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--pink); margin-bottom: 3px;
+  }
+  .sc-title { font-size: 11px; font-weight: 700; color: var(--dark); margin-bottom: 2px; }
+  .sc-sub   { font-size: 9.5px; color: var(--gray-md); line-height: 1.4; }
+
+  /* ── NODE: c-end (Cliente — encerramento escuro) */
+  .c-end {
+    background: var(--dark);
+    border: 1.5px solid #2E4A5C;
+    border-left: 4px solid var(--pink);
+    padding-left: 16px;
+  }
+  .c-end .tag         { background: var(--pink-pill); color: var(--pink); }
+  .c-end .tag-dot     { background: var(--pink); }
+  .c-end .ntitle      { color: var(--white); }
+  .c-end .ndesc       { color: var(--teal-lt); }
+
+  /* ── NODE: n2-page (Negócio Gestão — dark) ───── */
+  .n2-page {
+    background: var(--dark);
+    border: 1.5px solid #2E4A5C;
+    border-left: 4px solid var(--pink);
+    padding-left: 16px;
+  }
+  .n2-page .tag       { background: var(--pink-pill); color: var(--pink); }
+  .n2-page .tag-dot   { background: var(--pink); }
+  .n2-page .ntitle    { color: var(--white); }
+  .n2-page .ndesc     { color: #8AABB8; }
+  .n2-page .si        { color: #8AABB8; }
+
+  /* ── NODE: n-loop (ciclo contínuo) ───────────── */
+  .n-loop {
+    width: 100%;
+    background: rgba(233,30,140,0.06);
+    border: 2px solid var(--pink);
+    border-radius: 12px;
+    padding: 14px 18px;
+    text-align: center;
+  }
+  .n-loop .tag        { background: var(--pink-pill); color: var(--pink); }
+  .n-loop .tag-dot    { background: var(--pink); }
+  .n-loop .ntitle     { color: var(--dark); font-size: 12px; }
+  .n-loop .ndesc      { color: var(--gray-md); font-size: 10.5px; margin-top: 4px; }
+
+  /* ── Cliente placeholder (aguarda e-mail) ─────── */
+  .ph {
+    width: 100%;
+    background: rgba(184,216,216,0.25);
+    border: 1.5px dashed var(--teal-md);
+    border-radius: 12px;
+    padding: 28px 20px;
+    text-align: center;
+    flex: 1;
+  }
+  .ph-icon { font-size: 26px; margin-bottom: 10px; }
+  .ph-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: #7FAAAA; margin-bottom: 6px;
+  }
+  .ph-text { font-size: 11.5px; color: var(--gray-md); line-height: 1.55; }
+
+  /* ── Bridge row (arrows alinhados com colunas) ── */
+  .bridge-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--col-gap);
+  }
+  .bridge-row .bcol {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── Email bridge (full-width) ────────────────── */
+  .email-bridge {
+    background: var(--pink);
+    border-radius: 16px;
+    padding: 22px 36px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(233,30,140,0.28);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .ev-icon  { font-size: 30px; margin-bottom: 8px; }
+  .ev-tag   {
+    display: inline-block;
+    font-size: 9px; font-weight: 700; letter-spacing: 2.5px;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.2); color: var(--white);
+    padding: 3px 12px; border-radius: 999px;
+    margin-bottom: 8px;
+  }
+  .ev-title { font-size: 17px; font-weight: 800; color: var(--white); margin-bottom: 6px; }
+  .ev-sub   { font-size: 11px; color: rgba(255,255,255,0.85); line-height: 1.6; max-width: 440px; }
+
+  /* ── Legend ───────────────────────────────────── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--gray-bd);
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .li { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--gray-md); }
+  .lb { width: 18px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────── -->
+<div class="page-header">
+  <div class="eyebrow">HDrive · Arquitetura de Fluxo</div>
+  <h1>Negócio ↔ Cliente — Jornadas em Paralelo</h1>
+  <p>Dois ambientes, uma plataforma. O negócio inicia e gerencia — o cliente acompanha e interage.</p>
+</div>
+
+<div class="diagram">
+
+  <!-- ══ SEÇÃO A: antes do e-mail ══════════════════ -->
+  <div class="two-col">
+
+    <!-- ── COL ESQUERDA: Negócio Criação ─────────── -->
+    <div class="col">
+      <div class="section-label sl-negocio">
+        <div class="dot"></div>
+        <span>Negócio — Colaborador Housi</span>
+      </div>
+      <div class="arrow dk"></div>
+
+      <div class="node n-page">
+        <div class="tag"><div class="tag-dot"></div>Página · Acesso</div>
+        <div class="ntitle">Login na Plataforma</div>
+        <div class="ndesc">Autenticação via e-mail corporativo — acesso ao ambiente interno da Housi</div>
+      </div>
+      <div class="arrow dk"></div>
+
+      <div class="node n-page">
+        <div class="tag"><div class="tag-dot"></div>Dashboard</div>
+        <div class="ntitle">Incorporadoras &amp; Projetos</div>
+        <div class="ndesc">Visão consolidada de todas as incorporadoras, com acesso rápido a cada projeto ativo</div>
+      </div>
+      <div class="arrow dk"></div>
+
+      <div class="node n-action">
+        <div class="tag"><div class="tag-dot"></div>Ação</div>
+        <div class="ntitle">+ Novo Projeto</div>
+        <div class="ndesc">Inicia o fluxo de cadastro — vinculado a uma incorporadora existente</div>
+      </div>
+      <div class="arrow dk"></div>
+
+      <div class="node n-page">
+        <div class="tag"><div class="tag-dot"></div>Formulário de Cadastro</div>
+        <div class="ntitle">Dados do Projeto</div>
+        <div class="ndesc">Preenchimento das informações essenciais para criar o projeto na plataforma</div>
+        <div class="subs">
+          <div class="si"><div class="b"></div>Nome e categoria do projeto</div>
+          <div class="si"><div class="b"></div>Incorporadora responsável</div>
+          <div class="si"><div class="b"></div><strong style="color:#E8F4F4;">E-mail do cliente</strong> — dispara o onboarding</div>
+        </div>
+      </div>
+      <div class="arrow dk"></div>
+
+      <div class="node n-page">
+        <div class="tag"><div class="tag-dot"></div>Configuração · Modular</div>
+        <div class="ntitle">Etapas e Subetapas do Projeto</div>
+        <div class="ndesc">Cada contrato é customizado — switches visuais habilitam ou desabilitam etapas individualmente</div>
+        <div class="subs">
+          <div class="si"><div class="b"></div>11 macro-etapas (Lançamento e Obras)</div>
+          <div class="si"><div class="b"></div>33 subetapas configuráveis por projeto</div>
+          <div class="si"><div class="b"></div>Responsável definido por subetapa</div>
+        </div>
+      </div>
+      <div class="arrow dk"></div>
+
+      <div class="node n-action">
+        <div class="tag"><div class="tag-dot"></div>Ação</div>
+        <div class="ntitle">Confirmar e Criar Projeto</div>
+        <div class="ndesc">Salva a configuração e aciona os processos automáticos do sistema</div>
+      </div>
+      <div class="arrow dk"></div>
+
+      <div class="node n-system">
+        <div class="tag"><div class="tag-dot"></div>Sistema Automático</div>
+        <div class="ntitle">Onboarding como efeito colateral</div>
+        <div class="ndesc">Executado sem nenhuma intervenção extra do colaborador</div>
+        <div class="subs">
+          <div class="si"><div class="b"></div>Valida o e-mail informado no cadastro</div>
+          <div class="si"><div class="b"></div>Cria o acesso do cliente se ainda não existir</div>
+          <div class="si"><div class="b"></div>Dispara o e-mail de boas-vindas com link de primeiro acesso</div>
+        </div>
+      </div>
+      <div class="arrow pk"></div>
+    </div>
+
+    <!-- ── COL DIREITA: Cliente (placeholder) ─────── -->
+    <div class="col">
+      <div class="section-label sl-cliente">
+        <div class="dot"></div>
+        <span>Cliente — Incorporadora</span>
+      </div>
+      <div class="arrow tl" style="opacity:0.35;"></div>
+      <div class="ph">
+        <div class="ph-icon">⏳</div>
+        <div class="ph-label">Aguarda ativação</div>
+        <div class="ph-text">O fluxo do cliente é ativado pelo e-mail de boas-vindas disparado automaticamente após a criação do projeto</div>
+      </div>
+    </div>
+  </div><!-- /two-col A -->
+
+  <!-- ══ BRIDGE: seta esquerda → email ═════════════ -->
+  <div class="bridge-row">
+    <div class="bcol"><!-- seta já incluída no final da col esquerda --></div>
+    <div class="bcol"></div>
+  </div>
+
+  <!-- ══ EMAIL BRIDGE full-width ═══════════════════ -->
+  <div class="email-bridge">
+    <div class="ev-icon">✉️</div>
+    <div class="ev-tag">Evento do sistema — transição de ambiente</div>
+    <div class="ev-title">E-mail de Boas-vindas Disparado</div>
+    <div class="ev-sub">O cliente recebe o link de primeiro acesso com o projeto já visível e configurado. A partir daqui o fluxo do cliente começa — e o negócio entra em modo de gestão contínua.</div>
+  </div>
+
+  <!-- ══ BRIDGE: setas saindo para ambas as colunas ═ -->
+  <div class="bridge-row">
+    <div class="bcol"><div class="arrow dk"></div></div>
+    <div class="bcol"><div class="arrow pk"></div></div>
+  </div>
+
+  <!-- ══ SEÇÃO B: após o e-mail ═══════════════════ -->
+  <div class="two-col">
+
+    <!-- ── COL ESQUERDA: Negócio Gestão Contínua ──── -->
+    <div class="col">
+      <div class="section-label sl-negocio2">
+        <div class="dot"></div>
+        <span>Negócio — Gestão Contínua</span>
+      </div>
+      <div class="arrow dk"></div>
+
+      <div class="node n2-page">
+        <div class="tag"><div class="tag-dot"></div>Dashboard · Acompanhamento</div>
+        <div class="ntitle">Monitoramento do Progresso</div>
+        <div class="ndesc">Visão consolidada de todos os projetos — etapas atrasadas ou bloqueadas em destaque</div>
+        <div class="subs">
+          <div class="si"><div class="b"></div>Visão por incorporadora e por projeto</div>
+          <div class="si"><div class="b"></div>Status em tempo real de cada subetapa</div>
+        </div>
+      </div>
+      <div class="arrow dk"></div>
+
+      <div class="node n2-page">
+        <div class="tag"><div class="tag-dot"></div>Ação · Etapa</div>
+        <div class="ntitle">Atualização de Dados por Etapa</div>
+        <div class="ndesc">O colaborador preenche formulários e avança subetapas sob responsabilidade da Housi</div>
+        <div class="subs">
+          <div class="si"><div class="b"></div>Salvamento progressivo por formulário</div>
+          <div class="si"><div class="b"></div>Registro de datas, aprovações e observações</div>
+        </div>
+      </div>
+      <div class="arrow dk"></div>
+
+      <div class="node n2-page">
+        <div class="tag"><div class="tag-dot"></div>Ação · Upload</div>
+        <div class="ntitle">Envio de Documentos e Arquivos</div>
+        <div class="ndesc">Uploads organizados automaticamente no drive da etapa correspondente</div>
+        <div class="subs">
+          <div class="si"><div class="b"></div>DWG, PDF, imagens e documentos técnicos</div>
+          <div class="si"><div class="b"></div>Visível para o cliente após upload</div>
+        </div>
+      </div>
+      <div class="arrow dk"></div>
+
+      <div class="node n2-page">
+        <div class="tag"><div class="tag-dot"></div>Ação · Conclusão</div>
+        <div class="ntitle">Conclusão de Etapas Pontuais</div>
+        <div class="ndesc">Marca subetapas como concluídas — atualiza a trilha do cliente em tempo real</div>
+        <div class="subs">
+          <div class="si"><div class="b"></div>Status atualizado instantaneamente para o cliente</div>
+          <div class="si"><div class="b"></div>Próxima etapa liberada automaticamente</div>
+          <div class="si"><div class="b"></div>Histórico registrado com data e responsável</div>
+        </div>
+      </div>
+      <div class="arrow dk"></div>
+
+      <div class="n-loop">
+        <div class="tag" style="justify-content:center;"><div class="tag-dot"></div>Ciclo Contínuo</div>
+        <div class="ntitle">Retorna ao monitoramento</div>
+        <div class="ndesc">O ciclo se repete até a entrega das chaves — a cada subetapa concluída o projeto avança na trilha.</div>
+      </div>
+    </div>
+
+    <!-- ── COL DIREITA: Cliente Fluxo ─────────────── -->
+    <div class="col">
+      <div class="section-label sl-cliente">
+        <div class="dot"></div>
+        <span>Cliente — Incorporadora</span>
+      </div>
+      <div class="arrow tl"></div>
+
+      <div class="node c-page">
+        <div class="tag"><div class="tag-dot"></div>Acesso · E-mail</div>
+        <div class="ntitle">Primeiro Acesso via Link</div>
+        <div class="ndesc">Cliente clica no link → define sua senha → entra com o projeto já configurado e visível</div>
+      </div>
+      <div class="arrow tl"></div>
+
+      <div class="node c-page">
+        <div class="tag"><div class="tag-dot"></div>Dashboard</div>
+        <div class="ntitle">Meus Projetos</div>
+        <div class="ndesc">Visão geral dos projetos vinculados à incorporadora, com status atualizado em tempo real</div>
+      </div>
+      <div class="arrow tl"></div>
+
+      <div class="node c-page">
+        <div class="tag"><div class="tag-dot"></div>Página Principal · Projeto</div>
+        <div class="ntitle">Trilha Visual de Progresso</div>
+        <div class="ndesc">O cliente acompanha cada etapa em tempo real — sem precisar ligar ou enviar e-mail para a Housi</div>
+        <div class="subs">
+          <div class="si"><div class="b" style="background:var(--dark);"></div>Status: Não iniciado · Em andamento · Concluído</div>
+          <div class="si"><div class="b" style="background:var(--dark);"></div>Responsável de cada subetapa indicado</div>
+          <div class="si"><div class="b" style="background:var(--dark);"></div>Histórico de ações registrado por data</div>
+        </div>
+      </div>
+      <div class="arrow tl"></div>
+
+      <div class="node c-split">
+        <div class="tag"><div class="tag-dot"></div>Interação · Subetapas</div>
+        <div class="ntitle">Formato certo para cada momento</div>
+        <div class="ndesc">Cada subetapa usa o modelo adequado ao que ela exige</div>
+        <div class="split-row">
+          <div class="split-child">
+            <div class="sc-tag">Formulário</div>
+            <div class="sc-title">Dados estruturados</div>
+            <div class="sc-sub">Salvamento progressivo · Gera PDF ao concluir</div>
+          </div>
+          <div class="split-child">
+            <div class="sc-tag">Upload</div>
+            <div class="sc-title">Entrega de arquivo</div>
+            <div class="sc-sub">DWG, PDF, imagens · Pasta da etapa</div>
+          </div>
+        </div>
+      </div>
+      <div class="arrow tl"></div>
+
+      <div class="node c-page">
+        <div class="tag"><div class="tag-dot"></div>Página · Documentos</div>
+        <div class="ntitle">Drive Centralizado por Etapa</div>
+        <div class="ndesc">Todos os arquivos organizados automaticamente com rastreabilidade completa e histórico de versões</div>
+      </div>
+      <div class="arrow tl"></div>
+
+      <div class="node c-end">
+        <div class="tag"><div class="tag-dot"></div>Feedback · Encerramento</div>
+        <div class="ntitle">Avaliação NPS da Experiência</div>
+        <div class="ndesc">Coletado diretamente na plataforma ao final do ciclo do projeto</div>
+      </div>
+    </div>
+
+  </div><!-- /two-col B -->
+
+</div><!-- /diagram -->
+
+<!-- ── Legend ──────────────────────────────────────── -->
+<div class="legend">
+  <div class="li">
+    <div class="lb" style="background:#253B4A; border-left:4px solid #E91E8C;"></div>
+    Página — Negócio
+  </div>
+  <div class="li">
+    <div class="lb" style="background:rgba(255,255,255,0.55); border-left:4px dashed #E91E8C; border-top:1.5px dashed #8AABB8; border-bottom:1.5px dashed #8AABB8; border-right:1.5px dashed #8AABB8;"></div>
+    Ação — Negócio
+  </div>
+  <div class="li">
+    <div class="lb" style="background:#E91E8C;"></div>
+    Sistema automático / Evento
+  </div>
+  <div class="li">
+    <div class="lb" style="background:#FFFFFF; border:1.5px solid #B8D8D8;"></div>
+    Página — Cliente
+  </div>
+  <div class="li">
+    <div class="lb" style="background:#1A2E3B; border-left:4px solid #E91E8C;"></div>
+    Gestão contínua / Encerramento
+  </div>
+  <div class="li">
+    <div class="lb" style="background:rgba(233,30,140,0.06); border:2px solid #E91E8C;"></div>
+    Ciclo contínuo
+  </div>
+</div>
+
+</body>
+</html>
