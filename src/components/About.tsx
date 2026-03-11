@@ -68,7 +68,7 @@ const About = () => {
                     className="w-full md:w-[40%] aspect-[4/5] bg-gray-100 rounded-3xl overflow-hidden shadow-xl"
                 >
                     <img
-                        src="/images/profilepic.jpg"
+                        src="/profile.jpg"
                         alt="Vinícius Falcão"
                         className="w-full h-full object-cover"
                     />
